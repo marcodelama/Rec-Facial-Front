@@ -145,13 +145,23 @@ export default {
       setTimeout(this.captureImage, 3000);
     },
 
-    // Método para enviar la imagen capturada a la API
+    // Método para enviar la imagen capturada a la API como binario
     async sendCapturedImage() {
       if (!this.capturedImage) return;
 
       try {
-        const response = await axios.post("http://127.0.0.1:8000/reconocer/", {
-          image: this.capturedImage, // Enviar imagen en base64
+        // Convertir la imagen en base64 a un Blob binario
+        const byteArray = await this.dataURItoBlob(this.capturedImage);
+
+        // Crear FormData para enviar el archivo binario
+        const formData = new FormData();
+        formData.append("image", byteArray, "captured_face.jpg");
+
+        // Enviar la imagen a la API
+        const response = await axios.post("http://127.0.0.1:8000/reconocer/", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         });
 
         console.log("Respuesta de la API:", response.data);
@@ -161,6 +171,21 @@ export default {
         alert("Error al enviar la imagen.");
       }
     },
+
+    // Convertir la imagen en base64 a un Blob
+    async dataURItoBlob(dataURI) {
+      const byteString = atob(dataURI.split(",")[1]);
+      const mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+      
+      // Crear un array de bytes a partir del string base64
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      
+      return new Blob([ab], { type: mimeString });
+    }
   },
   mounted() {
     this.loadModels();
