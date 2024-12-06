@@ -15,7 +15,7 @@
       </div>
       <p v-if="!isCameraOn" class="text-center">
         Haz clic en "Abrir cámara" para empezar.
-      </p>
+      </p>  
     </div>
 
     <div class="button-group">
@@ -29,6 +29,10 @@
     <div v-if="capturedImage" class="captured-image">
       <h3>Imagen capturada:</h3>
       <img :src="capturedImage" alt="Captured Face" />
+    </div>
+    <div v-if="apiResponse" class="api-response">
+      <h3>Resultados de la API:</h3>
+      <pre>{{ apiResponse }}</pre>
     </div>
   </div>
 </template>
@@ -155,17 +159,16 @@ export default {
 
         // Crear FormData para enviar el archivo binario
         const formData = new FormData();
-        formData.append("image", byteArray, "captured_face.jpg");
+        formData.append("imagen", byteArray, "captured_face.jpg");
 
         // Enviar la imagen a la API
-        const response = await axios.post("http://127.0.0.1:8000/reconocer/", formData, {
+        const response = await axios.post("http://127.0.0.1:8000/asistencia/", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-
-        console.log("Respuesta de la API:", response.data);
-        alert("Imagen enviada exitosamente!");
+        console.log("Respuesta de la API:", response.data.mensaje);
+        this.apiResponse = response.data.mensaje;
       } catch (error) {
         console.error("Error al enviar la imagen:", error);
         alert("Error al enviar la imagen.");
